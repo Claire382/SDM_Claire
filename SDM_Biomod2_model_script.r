@@ -10,7 +10,7 @@ library(biomod2) # Presence/absence modeling
 library(quarto)
 
 # Create folder structure
-modelID <- "20240910"
+modelID <- "20240917"
 pathPA <- paste0(getwd(), "/model output/", modelID, "/PA")
 dir.create(pathPA, recursive = TRUE)
 
