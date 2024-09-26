@@ -74,8 +74,12 @@ visMod <- function(mod, ens){
   } else{
     cat("\n::: panel-tabset \n")
     for(modType in c("GLM", "GAM", "GBM", "RF", "XGBOOST")){
+      tryCatch({
       cat("\n\n####", modType, " \n")
       plot(bm_PlotResponseCurves(mod, models.chosen = get_built_models(mod, algo = modType), do.progress = F)$plot)
+    }, error = function(e){
+      
+    })
     }
     cat("\n:::\n")
   }
@@ -116,8 +120,12 @@ modQuartoFuncBiomod_pre <- function(modelID, species, timePeriod, quarter){
         cat("\n\n##### Enskilda modeller\n")
         cat("\n::: panel-tabset\n")
         for(modType in c("GLM", "GAM", "GBM", "RF", "XGBOOST")){
+          tryCatch({
           cat("\n\n#####", modType, " \n")
           plot(myBiomodProj, algo = modType)
+          }, error = function(e){
+            
+          })
         }
         cat("\n:::\n")
         cat("\n\n##### PA-mask \n")

@@ -8,18 +8,22 @@ library(terra) # Raster handling
 library(sdm) # Abundance modeling
 library(biomod2) # Presence/absence modeling
 library(quarto)
+install.packages("quarto")
 
 # Create folder structure
-modelID <- "20240917"
+modelID <- "20240926"
 pathPA <- paste0(getwd(), "/model output/", modelID, "/PA")
 dir.create(pathPA, recursive = TRUE)
 
 ## Select species from the loaded data file ####
-species <- c("Plaice" = "Pleuronectes platessa", 
-             "Cod" = "Gadus morhua"
+#to see the species list and the predictors: use df
+species <- c("Sjurygg" = "Cyclopterus lumpus", 
+             "Fjärsing" = "Trachinus draco" , 
+             "Pigghaj" = "Squalus acanthias"
              # "Herring" =  "Clupea harengus", 
              # "ThornySkate" = "Amblyraja radiata"
              )
+species
 
 ## Select predictors from the loaded raster stack ####
 predictors <-   c("bTemp", "bSal", "Depth", "botCur", "slope", "fishInt", "maxT")
@@ -30,8 +34,12 @@ predStack <- readRDS("data/predStack_20240118.rds") # Raster stack of all predic
 predStack <- predStack[[predictors]]
 
 # Creating a presence/absence data.frame of species occurence
+install.packages("tidyverse")
+library(tidyverse)
+
 dfPA <- dplyr::select(df, Year, Quarter, ShootLong, ShootLat, all_of(predictors), all_of(species)) |> 
   mutate(across(names(species), ~replace(., . > 0, 1)))
+#here it is saying that if superior to 0 put 1 
 
 # Creating a data.frame for the abundance modeling with the variable n catches per swept area
 dfAbu <- dplyr::select(df, Year, Quarter, sweptAreaDS_km2, all_of(predictors), all_of(species)) |> 
@@ -167,7 +175,7 @@ for(tp in 1:length(timePeriod)){
         ### Prediction ####
         
         # Individual models
-        sdm_P <- predict(sdm_M, stack(rast(predStack)))
+        sdm_P <- predict(sdm_M, predStack)
         
         # Ensemble prediction weighted by the individual models correlation value
         sdm_E <- ensemble(sdm_M, sdm_P, setting = list(method = 'weighted', stat = 'cor', expr = 'cor > 0'))

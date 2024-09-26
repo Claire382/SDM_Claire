@@ -1,7 +1,7 @@
 ---
 title: "SDM report"
 author: "Claire"
-date: 2024-09-10
+date: 2024-09-17
 date-format: iso
 format: 
   html:
@@ -54,7 +54,7 @@ predStack <- readRDS("data/predStack_20240118.rds") # Raster stack of all predic
 # Model parameters
 timePeriod <- tibble("2005_2022" = c(2005, 2022)) 
 quarter <- list("AllYear" = c(1,2,3,4)) 
-modelID <- "20240910"
+modelID <- "20240917"
 
 # Load species from the model output folder
 # species <- dir(paste0("../model output/", modelID, "/PA"))
