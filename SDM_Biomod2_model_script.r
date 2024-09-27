@@ -11,7 +11,7 @@ library(quarto)
 install.packages("quarto")
 
 # Create folder structure
-modelID <- "20240926"
+modelID <- "20240926_1"
 pathPA <- paste0(getwd(), "/model output/", modelID, "/PA")
 dir.create(pathPA, recursive = TRUE)
 
@@ -39,14 +39,15 @@ library(tidyverse)
 
 dfPA <- dplyr::select(df, Year, Quarter, ShootLong, ShootLat, all_of(predictors), all_of(species)) |> 
   mutate(across(names(species), ~replace(., . > 0, 1)))
-#here it is saying that if superior to 0 put 1 
+#here the code selects specific columns from a data frame df, use then mutate and across to modify the selected species columns, replacing any values greater than 0 with  - result is store in a new dataframne dfPA
 
 # Creating a data.frame for the abundance modeling with the variable n catches per swept area
+#here transform the selected species by dividing each value by the area_km2, and converting the result into an integer. 
 dfAbu <- dplyr::select(df, Year, Quarter, sweptAreaDS_km2, all_of(predictors), all_of(species)) |> 
   mutate(across(names(species), ~ as.integer(.x / sweptAreaDS_km2)))
 
 ## Model parameters ####
-timePeriod <- tibble("2005_2022" = c(2005, 2022)) # Which years should be included
+timePeriod <- tibble("2010_2022" = c(2010, 2022)) # Which years should be included
 quarter <- list("AllYear" = c(1,2,3,4)) # Which quarters should be included (Can be changed to months)
 nRepPA_CV <- 2 # Number of repetitions of cross-validation points that will be drawn in the individual models
 nRepPA_VI <- 2 # Number of permutations for to estimate variable importance in the individual models
@@ -72,7 +73,7 @@ write.table(modPar, paste0(getwd(), "/model output/", modelID, "/modelParameters
             col.names = FALSE, row.names = FALSE, quote = FALSE)
 
 # MODELING ####
-# Function for filtering out selected time period and quarter
+# Function for filtering out selected time period and quarter - tp is here the specific time and quarter the specific quarter
 dfFilter <- function(data, tp, q){
   dplyr::filter(data,
                 Year >= as.numeric(timePeriod[tp][1, 1]), 
@@ -124,7 +125,7 @@ for(tp in 1:length(timePeriod)){
                                               em.algo = c('EMwmean'), # Individual model weight in the ensemble
                                               EMwmean.decay = 'proportional', # A value defining the relative importance of the weights
                                               metric.select = c('ROC'), # Use the ROC score to define which models to be included in the ensemble
-                                              metric.select.thresh = c(0.7), # Only include models with ROC > 0.7
+                                              metric.select.thresh = c(0.7), # Only include models with ROC > 0.7: ROC or Area under the ROC curve summarized the overall performance of the model: it ranges from 0 to 1. Here the threshold is 0.7 and if the results is below that, it will mean that the model performed worse than random guessing 
                                               var.import = nRepPAEns_VI,
                                               metric.eval = c('TSS', 'ROC'),
                                               do.progress = FALSE,
@@ -161,6 +162,7 @@ for(tp in 1:length(timePeriod)){
                          filename = paste0(pathAbu, "/", sp, "_", names(timePeriod)[tp], "_", names(quarter)[q])
         )
         ### Modeling ####
+        #create the species distribution modelling 
         sdm_M <- sdm(form,
                      data = sdm_D,
                      methods = sdmMethods,
@@ -204,7 +206,7 @@ for(tp in 1:length(timePeriod)){
       },
       error = function(e){
         errorMsg <- capture.output(e)
-        
+         
         # Create folder structure
         pathError <- paste(getwd(), "model output", modelID, "Error log", sep = "/")
         if(!dir.exists(pathError)) dir.create(pathError, recursive = TRUE)
